@@ -49,25 +49,21 @@ pipeline {
     steps {
         sh '''
         echo "===== STARTING APPLICATION ====="
-
         cd $WORKSPACE
 
-        echo "Starting app on port $PORT for $ENV"
+        # This variable prevents Jenkins from killing the process after the build ends
+        export JENKINS_NODE_COOKIE=dontKillMe 
 
-        # Kill any process on this port
+        # Use -f to ensure fuser actually kills the process
         fuser -k $PORT/tcp || true
 
-        # Fully detach process from Jenkins
+        # Start the app
         setsid nohup env PORT=$PORT ENV=$ENV node app.js > app.log 2>&1 < /dev/null &
 
         sleep 5
-
-        echo "Running processes:"
-        ps -ef | grep node
-
-        echo "App log:"
-        cat app.log || echo "No log found"
-
+        echo "Check if process is still alive:"
+        pgrep -fl "node app.js" || echo "Process failed to start!"
+        
         echo "===== DONE ====="
         '''
     }
