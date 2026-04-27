@@ -63,7 +63,7 @@ pipeline {
 
                 # Start app in background and detach from Jenkins
                 nohup env PORT=$PORT ENV=$ENV node app.js > app.log 2>&1 &
-                disown
+                
 
                 sleep 3
 
