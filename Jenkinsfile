@@ -46,36 +46,31 @@ pipeline {
         }
 
         stage('Run Application') {
-            steps {
-                sh '''
-                echo "===== STARTING APPLICATION ====="
+    steps {
+        sh '''
+        echo "===== STARTING APPLICATION ====="
 
-                cd $WORKSPACE
+        cd $WORKSPACE
 
-                echo "Running from:"
-                pwd
-                ls -l
+        echo "Starting app on port $PORT for $ENV"
 
-                echo "Starting app on port $PORT for $ENV"
+        # Kill any process on this port
+        fuser -k $PORT/tcp || true
 
-                # Kill any leftover node processes (safety)
-                pkill -f "node app.js" || true
+        # Fully detach process from Jenkins
+        setsid nohup env PORT=$PORT ENV=$ENV node app.js > app.log 2>&1 < /dev/null &
 
-                # Start app in background and detach from Jenkins
-                nohup env PORT=$PORT ENV=$ENV node app.js > app.log 2>&1 &
-                
+        sleep 5
 
-                sleep 3
+        echo "Running processes:"
+        ps -ef | grep node
 
-                echo "Running processes:"
-                ps -ef | grep node
+        echo "App log:"
+        cat app.log || echo "No log found"
 
-                echo "App log:"
-                cat app.log || echo "No log found"
-
-                echo "===== DONE ====="
-                '''
-            }
-        }
+        echo "===== DONE ====="
+        '''
+    }
+}
     }
 }
