@@ -49,15 +49,32 @@ pipeline {
 
         stage('Run Application') {
             steps {
-                script {
-                    sh """
-                    cd ${WORKSPACE}
-                    echo "Starting app on port ${PORT} for ${ENV}"
-                    nohup env PORT=${PORT} ENV=${ENV} node app.js > app.log 2>&1 &
-                    
-                    """
-                }
-            }
-        }
+                sh '''
+            echo "===== DEBUG START ====="
+            echo "Workspace is: $WORKSPACE"
+        pwd
+        ls -l
+
+        cd $WORKSPACE
+
+        echo "After cd:"
+        pwd
+        ls -l
+
+        echo "Starting app..."
+        nohup env PORT=$PORT ENV=$ENV node app.js > app.log 2>&1 &
+
+        sleep 2
+
+        echo "Running processes:"
+        ps -ef | grep node
+
+        echo "App log output:"
+        cat app.log || echo "No log file found"
+
+        echo "===== DEBUG END ====="
+        '''
+    }
+}
     }
 }
