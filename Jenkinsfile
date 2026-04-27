@@ -38,43 +38,44 @@ pipeline {
 
         stage('Stop Existing App') {
             steps {
-                script {
-                    sh """
-                    echo "Stopping existing app on port ${PORT}"
-                    fuser -k ${PORT}/tcp || true
-                    """
-                }
+                sh '''
+                echo "Stopping existing app on port $PORT"
+                fuser -k $PORT/tcp || true
+                '''
             }
         }
 
         stage('Run Application') {
             steps {
                 sh '''
-            echo "===== DEBUG START ====="
-            echo "Workspace is: $WORKSPACE"
-        pwd
-        ls -l
+                echo "===== STARTING APPLICATION ====="
 
-        cd $WORKSPACE
+                cd $WORKSPACE
 
-        echo "After cd:"
-        pwd
-        ls -l
+                echo "Running from:"
+                pwd
+                ls -l
 
-        echo "Starting app..."
-        nohup env PORT=$PORT ENV=$ENV node app.js > app.log 2>&1 &
+                echo "Starting app on port $PORT for $ENV"
 
-        sleep 2
+                # Kill any leftover node processes (safety)
+                pkill -f "node app.js" || true
 
-        echo "Running processes:"
-        ps -ef | grep node
+                # Start app in background and detach from Jenkins
+                nohup env PORT=$PORT ENV=$ENV node app.js > app.log 2>&1 &
+                disown
 
-        echo "App log output:"
-        cat app.log || echo "No log file found"
+                sleep 3
 
-        echo "===== DEBUG END ====="
-        '''
-    }
-}
+                echo "Running processes:"
+                ps -ef | grep node
+
+                echo "App log:"
+                cat app.log || echo "No log found"
+
+                echo "===== DONE ====="
+                '''
+            }
+        }
     }
 }
