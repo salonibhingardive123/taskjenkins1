@@ -51,8 +51,10 @@ pipeline {
             steps {
                 script {
                     sh """
+                    cd ${WORKSPACE}
                     echo "Starting app on port ${PORT} for ${ENV}"
                     nohup env PORT=${PORT} ENV=${ENV} node app.js > app.log 2>&1 &
+                    
                     """
                 }
             }
