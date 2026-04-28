@@ -5,7 +5,7 @@ const ENV = process.env.ENV || "UNKNOWN";
 
 const server = http.createServer((req, res) => {
   res.writeHead(200, { "Content-Type": "text/plain" });
-  res.end(`Hello from ${ENV} environment! This will only be visible in dev environment\n`);
+  res.end(`Hello from ${ENV} environment! This will only be visible in dev environment - test\n`);
 });
 
 server.listen(PORT, "0.0.0.0", () => {
